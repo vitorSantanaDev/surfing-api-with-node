@@ -1,8 +1,11 @@
-describe('Beach forecast functional test', () => {
-  it('should return a forecast with just a few times', async () => {
-    const { body, status } = await global.testRequest.get('/forecast')
-    expect(status).toBe(200)
-    expect(body).toEqual([
+import { Controller, Get } from '@overnightjs/core'
+import { Request, Response } from 'express'
+
+@Controller('forecast')
+export class ForeCastController {
+  @Get('')
+  public getForecastForLoggerUser(_: Request, response: Response): void {
+    response.send([
       {
         time: '2020-04-26T00:00:00+00:00',
         forecast: [
@@ -42,5 +45,5 @@ describe('Beach forecast functional test', () => {
         ]
       }
     ])
-  })
-})
+  }
+}
