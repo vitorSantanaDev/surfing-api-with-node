@@ -1,4 +1,5 @@
-import { AxiosStatic } from 'axios'
+import { InternalError } from '@src/utils/errors/internalErros'
+import { AxiosError, AxiosStatic } from 'axios'
 
 export interface IStormGlassPointSource {
   [key: string]: number
@@ -28,6 +29,20 @@ export interface IForecastPoint {
   waveHeight: number
   windDirection: number
   windSpeed: number
+}
+
+export class ClientRequestError extends InternalError {
+  constructor(message: string) {
+    const internalMessage = `Unexpected error when trying to communicate to StormGlass`
+    super(`${internalMessage}: ${message}`)
+  }
+}
+
+export class StormGlassResponseError extends InternalError {
+  constructor(message: string) {
+    const internalMessage = `Unexpected error returned by the StormGlass service`
+    super(`${internalMessage}: ${message}`)
+  }
 }
 
 export class StormGlass {
@@ -70,15 +85,31 @@ export class StormGlass {
     lat: number,
     lng: number
   ): Promise<IForecastPoint[]> {
-    const response = this.request.get<IStormGlassForecastResponse>(
-      `https://api.stormglass.io/v2/weather/point?params=${this.stormGlassAPIParams}&source=${this.stormGlassAPISource}&lat=${lat}&lng=${lng}`,
-      {
-        headers: {
-          Authorization: 'fake-token'
+    try {
+      const response = this.request.get<IStormGlassForecastResponse>(
+        `https://api.stormglass.io/v2/weather/point?params=${this.stormGlassAPIParams}&source=${this.stormGlassAPISource}&lat=${lat}&lng=${lng}`,
+        {
+          headers: {
+            Authorization: 'fake-token'
+          }
         }
-      }
-    )
+      )
+      return this.normalizeResponse((await response).data)
+    } catch (error) {
+      const axiosError = error as AxiosError
 
-    return this.normalizeResponse((await response).data)
+      if (
+        axiosError instanceof Error &&
+        axiosError.response &&
+        axiosError.response.status
+      ) {
+        throw new StormGlassResponseError(
+          `Error: ${JSON.stringify(axiosError.response.data)} Code: ${
+            axiosError.response.status
+          }`
+        )
+      }
+      throw new ClientRequestError((error as { message: any }).message)
+    }
   }
 }
