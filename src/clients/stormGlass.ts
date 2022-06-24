@@ -1,5 +1,7 @@
+import config, { IConfig } from 'config'
+
 import { InternalError } from '@src/utils/errors/internalErros'
-import { AxiosError, AxiosStatic } from 'axios'
+import * as HTTPUtil from '@src/utils/request'
 
 export interface IStormGlassPointSource {
   [key: string]: number
@@ -45,11 +47,13 @@ export class StormGlassResponseError extends InternalError {
   }
 }
 
+const stormGlassResourceConfig: IConfig = config.get('App.resources.StormGlass')
+
 export class StormGlass {
   readonly stormGlassAPIParams =
     'swellDirection,swellHeight,swellPeriod,waveDirection,waveHeight,windDirection,windSpeed'
   readonly stormGlassAPISource = 'noaa'
-  constructor(protected request: AxiosStatic) {}
+  constructor(protected request = new HTTPUtil.Request()) {}
 
   private isValidPoint(point: Partial<IStormGlassPoint>): boolean {
     return !!(
@@ -87,29 +91,25 @@ export class StormGlass {
   ): Promise<IForecastPoint[]> {
     try {
       const response = this.request.get<IStormGlassForecastResponse>(
-        `https://api.stormglass.io/v2/weather/point?params=${this.stormGlassAPIParams}&source=${this.stormGlassAPISource}&lat=${lat}&lng=${lng}`,
+        `${stormGlassResourceConfig.get('apiUrl')}/weather/point?params=${
+          this.stormGlassAPIParams
+        }&source=${this.stormGlassAPISource}&lat=${lat}&lng=${lng}`,
         {
           headers: {
-            Authorization: 'fake-token'
+            Authorization: stormGlassResourceConfig.get('apiToken')
           }
         }
       )
       return this.normalizeResponse((await response).data)
-    } catch (error) {
-      const axiosError = error as AxiosError
-
-      if (
-        axiosError instanceof Error &&
-        axiosError.response &&
-        axiosError.response.status
-      ) {
+    } catch (err) {
+      if (err instanceof Error && HTTPUtil.Request.isRequestError(err)) {
+        const error = HTTPUtil.Request.extractErrorData(err)
         throw new StormGlassResponseError(
-          `Error: ${JSON.stringify(axiosError.response.data)} Code: ${
-            axiosError.response.status
-          }`
+          `Error: ${JSON.stringify(error.data)} Code: ${error.status}`
         )
       }
-      throw new ClientRequestError((error as { message: any }).message)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      throw new ClientRequestError((err as { message: any }).message)
     }
   }
 }
