@@ -72,13 +72,19 @@ describe('StormGlass client', () => {
       }
     }
 
-    MockedRequestClass.isRequestError.mockReturnValue(true)
     mockedRequest.get.mockRejectedValue(
       new FakeAxiosError({
         status: 429,
         data: { errors: ['Rate Limit reached'] }
       })
     )
+
+    MockedRequestClass.isRequestError.mockReturnValue(true)
+
+    MockedRequestClass.extractErrorData.mockReturnValue({
+      status: 429,
+      data: { errors: ['Rate Limit reached'] }
+    })
 
     const stormGlass = new StormGlass(mockedRequest)
 
