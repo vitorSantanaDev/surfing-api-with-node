@@ -1,49 +1,25 @@
 import { Controller, Get } from '@overnightjs/core'
+import { Beach } from '@src/models/beach.model'
+import { Forecast } from '@src/services/forecast'
 import { Request, Response } from 'express'
+
+const forecast = new Forecast()
 
 @Controller('forecast')
 export class ForeCastController {
   @Get('')
-  public getForecastForLoggerUser(_: Request, response: Response): void {
-    response.send([
-      {
-        time: '2020-04-26T00:00:00+00:00',
-        forecast: [
-          {
-            lat: -33.792726,
-            lng: 151.289824,
-            name: 'Manly',
-            position: 'E',
-            rating: 2,
-            swellDirection: 64.26,
-            swellHeight: 0.15,
-            swellPeriod: 3.89,
-            time: '2020-04-26T00:00:00+00:00',
-            waveDirection: 231.38,
-            waveHeight: 0.47,
-            windDirection: 299.45
-          }
-        ]
-      },
-      {
-        time: '2020-04-26T01:00:00+00:00',
-        forecast: [
-          {
-            lat: -33.792726,
-            lng: 151.289824,
-            name: 'Manly',
-            position: 'E',
-            rating: 2,
-            swellDirection: 123.41,
-            swellHeight: 0.21,
-            swellPeriod: 3.67,
-            time: '2020-04-26T01:00:00+00:00',
-            waveDirection: 232.12,
-            waveHeight: 0.46,
-            windDirection: 310.48
-          }
-        ]
-      }
-    ])
+  public async getForecastForLoggerUser(
+    _: Request,
+    response: Response
+  ): Promise<void> {
+    try {
+      const beaches = await Beach.find({})
+      const forecastData = await forecast.processForecastForBeaches(beaches)
+      response.status(200).send(forecastData)
+    } catch (err) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const error = err as { message: any }
+      response.status(500).send({ error: error.message })
+    }
   }
 }

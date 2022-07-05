@@ -1,12 +1,8 @@
 import { StormGlass } from '@src/clients/stormGlass'
-import {
-  BeachePositionTypeEnum,
-  ForecasrProcessingInternalError,
-  Forecast,
-  IBeach
-} from '../forecast'
+import { ForecasrProcessingInternalError, Forecast } from '../forecast'
 
 import stormGlassNormalizedResponseFixture from '@test/fixtures/stormGlass_normalized_response_3_hours.json'
+import { BeachePositionTypeEnum, IBeach } from '@src/models/beach.model'
 
 jest.mock('@src/clients/stormGlass')
 
@@ -22,8 +18,7 @@ describe('Forecast Service', () => {
         lat: -33.792726,
         lng: 151.289824,
         name: 'Manly',
-        position: BeachePositionTypeEnum.E,
-        user: 'some-id'
+        position: BeachePositionTypeEnum.E
       }
     ]
 
@@ -108,8 +103,7 @@ describe('Forecast Service', () => {
         lat: -33.792726,
         lng: 151.289824,
         name: 'Manly',
-        position: BeachePositionTypeEnum.E,
-        user: 'some-id'
+        position: BeachePositionTypeEnum.E
       }
     ]
 
