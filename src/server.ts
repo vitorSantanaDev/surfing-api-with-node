@@ -3,8 +3,10 @@ import bodyParser from 'body-parser'
 import { Application } from 'express'
 
 import './utils/module-alias'
+
 import { ForeCastController } from './controllers/Forecast.controller'
 import { BeachesController } from './controllers/beaches.controller'
+import { UsersController } from './controllers/users.controller'
 
 import * as database from './database'
 
@@ -26,7 +28,12 @@ export class SetupServer extends Server {
   private setupControllers(): void {
     const forecastController = new ForeCastController()
     const beachesController = new BeachesController()
-    this.addControllers([forecastController, beachesController])
+    const usersController = new UsersController()
+    this.addControllers([
+      forecastController,
+      beachesController,
+      usersController
+    ])
   }
 
   private async databaseSetup(): Promise<void> {
