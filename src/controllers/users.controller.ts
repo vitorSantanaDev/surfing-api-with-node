@@ -38,6 +38,6 @@ export class UsersController extends BaseController {
         .send({ code: 401, error: 'Password does not match' })
     }
     const token = AuthService.generateToken(user.toJSON())
-    return res.status(200).send({ token: token })
+    return res.status(200).send({ ...user.toJSON(), ...{ token } })
   }
 }

@@ -1,4 +1,5 @@
-import { Controller, Get } from '@overnightjs/core'
+import { ClassMiddleware, Controller, Get } from '@overnightjs/core'
+import { authMiddleware } from '@src/middlewares/auth'
 import { Beach } from '@src/models/beach.model'
 import { Forecast } from '@src/services/forecast'
 import { Request, Response } from 'express'
@@ -6,20 +7,20 @@ import { Request, Response } from 'express'
 const forecast = new Forecast()
 
 @Controller('forecast')
+@ClassMiddleware(authMiddleware)
 export class ForeCastController {
   @Get('')
   public async getForecastForLoggerUser(
-    _: Request,
-    response: Response
+    req: Request,
+    res: Response
   ): Promise<void> {
     try {
-      const beaches = await Beach.find({})
+      const beaches = await Beach.find({ user: req.decoded?.id })
       const forecastData = await forecast.processForecastForBeaches(beaches)
-      response.status(200).send(forecastData)
+      res.status(200).send(forecastData)
     } catch (err) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const error = err as { message: any }
-      response.status(500).send({ error: error.message })
+      const error = err as { message: string }
+      res.status(500).send({ error: error.message })
     }
   }
 }

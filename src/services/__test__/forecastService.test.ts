@@ -18,7 +18,8 @@ describe('Forecast Service', () => {
         lat: -33.792726,
         lng: 151.289824,
         name: 'Manly',
-        position: BeachePositionTypeEnum.E
+        position: BeachePositionTypeEnum.E,
+        user: 'fake-id'
       }
     ]
 
@@ -103,7 +104,8 @@ describe('Forecast Service', () => {
         lat: -33.792726,
         lng: 151.289824,
         name: 'Manly',
-        position: BeachePositionTypeEnum.E
+        position: BeachePositionTypeEnum.E,
+        user: 'fake-id'
       }
     ]
 
